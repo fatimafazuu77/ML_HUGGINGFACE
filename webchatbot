@@ -1,0 +1,58 @@
+import re
+from transformers import pipeline
+
+ai_bot = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-base"
+)
+
+
+
+rules = {
+    r"\bhtml\b": "HTML stands for HyperText Markup Language. It is used to structure web pages.",
+    r"\bcss\b": "CSS stands for Cascading Style Sheets. It is used to style web pages.",
+    r"\bjavascript\b": "JavaScript is a scripting language used to make web pages interactive.",
+    r"\bfrontend\b": "Frontend refers to the visual part of a website that users interact with.",
+    r"\bbackend\b": "Backend handles server-side logic, databases, and APIs.",
+    r"\bapi\b": "API allows different software applications to communicate with each other."
+}
+
+def rule_based_answer(question):
+    question = question.lower()
+    for pattern, answer in rules.items():
+        if re.search(pattern, question):
+            return answer
+    return None
+
+
+def ai_answer(question):
+    prompt = f"""
+You are a web development expert.
+Answer clearly and correctly in simple language.
+If you are unsure, say "I am not sure".
+
+Question:
+{question}
+
+Answer:
+"""
+    result = ai_bot(prompt, max_new_tokens=120, do_sample=False)
+    return result[0]["generated_text"]
+
+
+
+print("🤖 Web Dev Chatbot (type 'exit' to quit)\n")
+
+while True:
+    user_input = input("You: ")
+
+    if user_input.lower() == "exit":
+        print("Bot: Goodbye! 👋")
+        break
+
+    response = rule_based_answer(user_input)
+
+    if response:
+        print("Bot (Rule):", response)
+    else:
+        print("Bot (AI):", ai_answer(user_input))
